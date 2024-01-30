@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Used car price prediction</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        .header {
+            margin-top: 20px;
+            text-align: center;
+            color: #263238;
+            font-size: 24px;
+            margin-bottom: 30px;
+            font-family: 'Playfair Display', serif;
+            }
+            .container-parent {
+          background: url('https://s1.1zoom.me/big0/336/Maserati_Many_555942_1280x853.jpg') fixed center;
+            background-size:cover;
+            background-color: rgba(255, 255, 255, 0.5);
+            width: 100%;
+            padding: 20px 0px 20px 0px;
+            display: flex;
+            flex-direction: row;
+            opacity: 0.8
+        }
+        .container {
+            width: 55%;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            justify-content: flex-end;
+            align-items: flex-end;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            margin-right: 20px;
+            float: right;
+        }
+    
+        .form-group {
+            margin-bottom: 20px;
+        }
+    
+        label {
+            font-weight: bold;
+            font-family: 'Playfair Display', serif;
+        }
+    
+        .submit-btn {
+            background-color: #263238;
+            color: #fff;
+            border-color: '#263238';
+        }
+        #predictedPrice {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+            color:  #263238;
+            margin-bottom: 30px;
+        }
+        .error-message {
+            color: red;
+            margin-top: 5px;
+            font-family: 'Playfair Display', serif;
+        }
+        option, select {
+          font-family: 'Playfair Display', serif;
+          color:rgba(0, 0, 0, 1)
+        }
+        .left-container {
+          width: 50%;
+          height: 100%;
+          align-items: center;
+          justify-content: center;
+          margin: 50px 20px 0px 20px;
+        }
+        .subtitle {
+          height: 100%;
+          color: '#c8dfea';
+          font-family: 'Playfair Display', serif;
+          font-weight: 900;
+          align-items: center;
+          justify-content: center;
+          align-self: center;
+          text-align: center;
+          vertical-align: middle;
+        }
+        .form-control-range {
+          accent-color: #263238;
+        }
+        .charts{
+          font-family: 'Playfair Display', serif;
+          font-weight: 500;
+          color: #263238;
+          text-align: center;
+          margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+  <div class="header">
+    <h1>USED CAR PRICE PREDICTION</h1>
+  </div>
+    <div class="container-parent">
+      <div class="left-container">
+        <h1 class="subtitle">
+          Empowering Choices: Machine Learning Driven Used Car Price Forecasts
+        </h1>
+      </div>
+    <div class="container">
+        <form id="carForm" action="{{ url_for('predict')}}" method="POST" enctype="multipart/form-data">
+          <div id="error" class="error-message"></div>
+          <div class="form-group">
+            <label for="abtest"> AB Test</label>
+            <select name = "abtest" class="form-control" id="abtest">
+              <option value="">Select an option</option>
+              <option value="0">Control</option>
+              <option value="1">Test</option>
+            </select>
+            <div id="error-message-abtest" class="error-message"></div>
+          </div>
+          <div class="form-group">
+            <label for="VehicleType">Vehicle Type:</label>
+            <select class="form-control" name="VehicleType" id="VehicleType">
+              <option value="">Select an option</option>
+              <option value="0">Other</option>
+              <option value="1">Bus</option>
+              <option value="2">Convertible</option>
+              <option value="3">Coupe</option>
+              <option value="4">SUV</option>
+            </select>
+            <div id="error-message-VehicleType" class="error-message"></div>
+          </div>
+    
+          <div class="form-group">
+            <label for="gearbox"> Gear Box:</label>
+            <select class="form-control" name="gearbox" id="gearbox">
+              <option value="">Select an option</option>
+              <option value="0">Automatic</option>
+              <option value="1">Manual</option>
+            </select>
+            <div id="error-message-gearbox" class="error-message"></div>
+          </div>
+    
+          <div class="form-group">
+            <label for="fuelType">Fuel Type:</label>
+            <select class="form-control" name="fuelType" id="fuelType">
+              <option value="">Select an option</option>
+              <option value="0">Other</option>
+              <option value="1">Petrol</option>
+              <option value="2">CNG</option>
+              <option value="3">Diesel</option>
+              <option value="4">Electric</option>
+              <option value="5">Hybrid</option>
+              <option value="6">LPG</option>
+            </select>
+            <div id="error-message-fuelType" class="error-message"></div>
+          </div>
+    
+          <div class="form-group">
+            <label for="notRepairedDamage">Car repaired after damage:</label>
+            <select class="form-control" name="notRepairedDamage" id="notRepairedDamage">
+              <option value="">Select an option</option>
+              <option value="0">Yes</option>
+              <option value="1">No</option>
+            </select>
+            <div id="error-message-notRepairedDamage" class="error-message"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="brand">Brand:</label>
+            <select class="form-control" name="brand" id="brand">
+              <option value="">Select an option</option>
+              <option value="0">Alfa Romeo</option>
+              <option value="1">Audi</option>
+              <option value="2">BMW</option>
+              <option value="3">Chevrolet</option>
+              <option value="4">Chrysler</option>
+              <option value="5">Citroen</option>
+              <option value="6">Dacia</option>
+              <option value="7">Daewoo</option>
+              <option value="8">Daihatsu</option>
+              <option value="9">Fiat</option>
+              <option value="10">Ford</option>
+              <option value="11">Honda</option>
+              <option value="12">Hyundai</option>
+              <option value="13">Jaguar</option>
+              <option value="14">Jeep</option>
+              <option value="15">Kia</option>
+              <option value="16">Lada</option>
+              <option value="17">Lancia</option>
+              <option value="18">Land Rover</option>
+              <option value="19">Mazda</option>
+              <option value="20">Mercedes Benz</option>
+              <option value="21">Mini</option>
+              <option value="22">Mitsubishi</option>
+              <option value="23">Nissan</option>
+              <option value="24">Opel</option>
+              <option value="25">Peugoet</option>
+              <option value="26">Porsche</option>
+              <option value="27">Renault</option>
+              <option value="28">Rover</option>
+              <option value="29">Saab</option>
+              <option value="30">Seat</option>
+              <option value="31">Skoda</option>
+              <option value="32">Smart</option>
+              <option value="33">Sonstige Autos</option>
+              <option value="34">Subaru</option>
+              <option value="35">Suzuki</option>
+              <option value="36">Toyota</option>
+              <option value="37">Trabant</option>
+              <option value="38">Volkswagen</option>
+              <option value="39">Volvo</option>
+            </select>
+            <div id="error-message-fuelType" class="error-message"></div>
+          </div>
+    
+          <div class="form-group">
+            <label for="powerPS">Choose PowerPS Range:</label>
+            <input type="range" class="form-control-range" id="powerPS" name="powerPS" min="0" max="12684" step="50" value="0">
+            <p id="powerPSOutput">PowerPS: 0</p>
+          </div>
+    
+          <div class="form-group">
+            <label for="km">Choose Kilometer Range:</label>
+            <input type="range" class="form-control-range" id="km" name="km" min="5000" max="15000" step="200" value="0.1">
+            <p id="KiloMeterOutput">Kilometer: 5000 km</p>
+          </div>
+
+          <div class="form-group">
+            <label for="yor">Choose Year of Registration:</label>
+            <input type="range" class="form-control-range" id="yor" name="yearOfRegistration" min="1982" max="2019" step="1" value="2019">
+            <p id="yorOutput">Year of Registration: 2019</p>
+          </div>
+
+          <div class="form-group">
+            <label for="MOR">Month of Registration: </label>
+            <select class="form-control" name="MOR" id="MOR">
+              <option value="">Select an option</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <div id="error-message-MOR" class="error-message"></div>
+          </div>
+
+
+          <button type="submit" onclick="predictPrice()" class="btn btn-primary submit-btn">Submit</button>
+        </form>
+      </div>
+    </div>
+
+      <div id="predictedPrice">
+      </div>
+
+      <div>
+      <h3 class="charts" id="power-chart">
+      
+      </h3>
+      <canvas id="myChart1" style="width:100%;max-width:800px"></canvas>
+      <h3 class="charts" id="kilometer-chart">
+      
+      </h3>
+      <canvas id="myChart2" style="width:100%;max-width:800px"></canvas>
+      <h3 class="charts" id="fueltype-chart">
+       
+      </h3>
+      <canvas id="myChart3" style="width:100%;max-width:800px"></canvas>
+      </div>
+      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+      <script>
+        var priceRange = document.getElementById("powerPS");
+        var priceOutput = document.getElementById("powerPSOutput");
+        priceOutput.innerHTML = "PowerPS: " + priceRange.value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    
+        priceRange.oninput = function () {
+          priceOutput.innerHTML = "PowerPS: " + this.value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+    
+        var mileageRange = document.getElementById("km");
+        var mileageOutput = document.getElementById("KiloMeterOutput");
+        mileageOutput.innerHTML = "Kilometer: " + mileageRange.value + " km";
+    
+        mileageRange.oninput = function () {
+          mileageOutput.innerHTML = "Kilometer: " + this.value.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " km";
+        };
+
+
+        var yorRange = document.getElementById("yor");
+        var yorOutput = document.getElementById("yorOutput");
+        yorOutput.innerHTML = "Year of Registration: " + yorRange.value;
+    
+        yorRange.oninput = function () {
+          yorOutput.innerHTML = "Year of Registration: " + this.value;
+        };
+      </script>
+      <script>
+        function displayError(message, fieldName) {
+            var errorElement = document.getElementById(`${fieldName}`);
+            errorElement.innerHTML = message;
+            document.getElementById(fieldName).scrollIntoView({ behavior: "smooth" });
+        }
+        function scrollIntoView() {
+            var predictedPriceElement = document.getElementById("predictedPrice");
+            predictedPriceElement.scrollIntoView({ behavior: "smooth" });
+        }
+        document.getElementById("carForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+        });
+        const isError = {{error}};
+        if(isError == 1)
+          displayError("All fields are required.", "error");
+        else{
+          const price = {{output}}
+          document.getElementById("predictedPrice").innerHTML = "Predicted Price: $" + price;
+            scrollIntoView();
+            document.getElementById("power-chart").innerHTML = "Interactive Visualizations for different Power PS values";
+            document.getElementById("kilometer-chart").innerHTML = "Interactive Visualizations for different Kilometer values";
+            document.getElementById("fueltype-chart").innerHTML = "Interactive Visualizations for different Fuel type values";
+            document.getElementById("fueltype-chart").style['margin-bottom'] = "20px";
+        }
+        
+        
+      </script> 
+      <script>
+        function predictPrice() {
+
+          clearError();
+          var abtest = document.getElementById("abtest").value;
+          var vehicleType = document.getElementById("VehicleType").value;
+          var gearbox = document.getElementById("gearbox").value;
+          var fuelType = document.getElementById("fuelType").value;
+          var notRepairedDamage = document.getElementById("notRepairedDamage").value;
+          var powerPS = document.getElementById("powerPS").value;
+          var km = document.getElementById("km").value;
+          var yor = document.getElementById("yor").value;
+          var MOR = document.getElementById("MOR").value;
+          if (!abtest || !vehicleType || !gearbox || !fuelType || !notRepairedDamage || !powerPS || !km || !yor || !MOR) {
+              displayError("All fields are required.", "error");
+              return;
+          }
+          document.getElementById('carForm').submit()
+        }
+        function displayError(message, fieldName) {
+            var errorElement = document.getElementById(`${fieldName}`);
+            errorElement.innerHTML = message;
+            document.getElementById(fieldName).scrollIntoView({ behavior: "smooth" });
+        }
+
+        function clearError() {
+            var errorElement = document.getElementById("error");
+            errorElement.innerHTML = "";
+        }
+
+        function scrollIntoView() {
+            var predictedPriceElement = document.getElementById("predictedPrice");
+            predictedPriceElement.scrollIntoView({ behavior: "smooth" });
+        }
+        document.getElementById("carForm").addEventListener("submit", function (event) {
+            event.preventDefault(); 
+        });
+    </script>
+      <script>
+      console.log({{feature_values}})
+      const xValues = {{feature_values}};
+      const yValues = {{different_preds}};
+      Chart.plugins.register({
+        afterDatasetsDraw: function(chart) {
+            if (chart.tooltip._active && chart.tooltip._active.length) {
+              var activePoint = chart.tooltip._active[0],
+                  ctx = chart.ctx,
+                  y_axis = chart.scales['y-axis-0'],
+                  x = activePoint.tooltipPosition().x,
+                  topY = y_axis.top,
+                  bottomY = y_axis.bottom;
+              ctx.save();
+              ctx.beginPath();
+              ctx.moveTo(x, topY);
+              ctx.lineTo(x, bottomY);
+              ctx.lineWidth = 2;
+              ctx.strokeStyle = '#dfff80';
+              ctx.stroke();
+              ctx.restore();
+            }
+        }
+      });
+      
+      var ctx1 = document.getElementById('myChart1').getContext('2d');
+      var lineChart1 = new Chart(ctx1, {
+        type: "line",
+        data: {
+            labels: xValues[0],
+            datasets: [{
+            label: "Price vs PowerPS",
+            fill: false,
+            lineTension: 0,
+            borderCapStyle: "round",
+            backgroundColor: "rgb(0, 0, 102)",
+            borderColor: "rgb(179, 179, 255)",
+            data: yValues[0],
+            borderWidth: 3,
+            hoverBorderColor: "#603b61",
+            pointHitRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'PowerPS',
+                  color: '#263238',
+                  font: {
+                    family: 'Playfair Display',
+                    size: 20,
+                    weight: 'bold',
+                    lineHeight: 1.2,
+                  },
+                  padding: {top: 20, left: 0, right: 0, bottom: 0}
+                },
+              },
+              y: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Price',
+                  color: '#263238',
+                  font: {
+                    family: 'Playfair Display',
+                    size: 20,
+                    weight: 'bold',
+                    lineHeight: 1.2,
+                  },
+                  padding: {top: 20, left: 0, right: 0, bottom: 0}
+                },
+              }
+            }
+        }
+        });
+      var ctx2 = document.getElementById('myChart2').getContext('2d');
+      var lineChart2 = new Chart(ctx2, {
+        type: "line",
+        data: {
+            labels: xValues[1],
+            datasets: [{
+            label: "Price vs Kilometer",
+            fill: false,
+            lineTension: 0,
+            borderCapStyle: "round",
+            backgroundColor: "rgb(0, 0, 102)",
+            borderColor: "#70db70",
+            data: yValues[1],
+            borderWidth: 3,
+            hoverBorderColor: "#196719",
+            pointHitRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Kilometer',
+                  color: '#70db70',
+                  font: {
+                    family: 'Playfair Display',
+                    size: 20,
+                    weight: 'bold',
+                    lineHeight: 1.2,
+                  },
+                  padding: {top: 20, left: 0, right: 0, bottom: 0}
+                },
+              },
+              y: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Price',
+                  color: '#70db70',
+                  font: {
+                    family: 'Playfair Display',
+                    size: 20,
+                    weight: 'bold',
+                    lineHeight: 1.2,
+                  },
+                  padding: {top: 20, left: 0, right: 0, bottom: 0}
+                },
+              }
+            }
+        }
+        });
+        fuel_mappings = {0: 'Other', 1: 'Petrol', 2: 'CNG', 3: 'Diesel', 4: 'Electric', 5: 'Hybrid', 6: 'LPG'}
+        fuel_values = []
+        for (val in xValues[2]){
+          fuel_values.push(fuel_mappings[val])
+        }
+      var ctx3 = document.getElementById('myChart3').getContext('2d');
+      var lineChart3 = new Chart(ctx3, {
+        type: "line",
+        data: {
+            labels: fuel_values,
+            datasets: [{
+            label: "Price vs Fuel type",
+            fill: false,
+            lineTension: 0,
+            borderCapStyle: "round",
+            backgroundColor: "rgb(0, 0, 102)",
+            borderColor: "#ff9999",
+            data: yValues[2],
+            borderWidth: 3,
+            hoverBorderColor: "#990000",
+            pointHitRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Fuel type',
+                  color: '#ff9999',
+                  font: {
+                    family: 'Playfair Display',
+                    size: 20,
+                    weight: 'bold',
+                    lineHeight: 1.2,
+                  },
+                  padding: {top: 20, left: 0, right: 0, bottom: 0}
+                },
+              },
+              y: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Price',
+                  color: '#ff9999',
+                  font: {
+                    family: 'Playfair Display',
+                    size: 20,
+                    weight: 'bold',
+                    lineHeight: 1.2,
+                  },
+                  padding: {top: 20, left: 0, right: 0, bottom: 0}
+                },
+              }
+            }
+        }
+        });
+  </script>
+</body>
+</html>
